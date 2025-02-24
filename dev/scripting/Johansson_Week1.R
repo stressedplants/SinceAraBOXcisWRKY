@@ -46,7 +46,7 @@ table(clust)
 plot(table(sort(clust)), 
      xlab = 'Cluster Name', 
      ylab = 'Number of Cells', 
-     main = 'flowerdata')
+     main = 'Histogram for the Flower Data')
 
 
 
