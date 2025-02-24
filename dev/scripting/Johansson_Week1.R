@@ -237,7 +237,6 @@ pheatmap(geneExpByCluster[, tfSubs], scale = 'column')
 
 
 
-
 # What is the correlation between expression in TFs and potential downstream targets? 
 # Does the TF regulate downstream gene?
 
