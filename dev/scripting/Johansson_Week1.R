@@ -1,4 +1,8 @@
 
+
+# Week 1 Homework - Introductory Analysis of the Data
+
+
 # install.packages('Matrix')
 library(Matrix)
 
@@ -142,6 +146,15 @@ plot(gbox.pca.umap$layout[,1],
      main = 'PCA UMAP Flower', 
      xlab = 'UMAP Component 1', 
      ylab = 'UMAP Component 2')
+
+
+
+
+
+
+# Optional Task: 2024 Week 3 Homework - Gene Expression Within Clusters
+
+# 
 
 
 
