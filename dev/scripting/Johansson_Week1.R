@@ -154,7 +154,71 @@ plot(gbox.pca.umap$layout[,1],
 
 # Optional Task: 2024 Week 3 Homework - Gene Expression Within Clusters
 
-# 
+
+# Previously scripted requirements for this task follow:
+
+# install.packages('Matrix')
+# library(Matrix)
+
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+# alternative filename='dev/utilities/dataprocessingHelperFunctions.R'
+# source('dev/utilities/dataprocessingHelperFunctions.R')
+
+# a=load('data/GSE226097_flower_230221.RData')
+# araboxcis=read.csv('data/gboxNetwork22C.csv', header=T)
+
+
+
+# Average Expression of Each Gene in Each Cluster
+
+clustAsNumbers = as.numeric(paste(clust))
+
+geneExpByCluster = apply(gbox,
+                         1,
+                         function(i) {
+                           sapply(0:(length(unique(clust))-1), 
+                                  function(j) {
+                                    ids = which(clustAsNumbers == j)
+                                    mean(i[ids])
+                                  })
+                         })
+
+colnames(geneExpByCluster) = rownames(gbox)
+
+# Average gene expression of each gene across each cluster
+dim(geneExpByCluster) 
+
+
+
+# Visualising Large Tables as Heatmaps
+
+install.packages('pheatmap') 
+library('pheatmap')
+
+# Plot gene expression changes as heatmap
+pheatmap(geneExpByCluster, scale = 'column')
+
+# Read in table of cell types and what clusters they belong to
+clustLabs = read.table('data/clusterLabels.txt', header = T, sep = '\t')
+
+# Meanings of clusters are unknown here, the clustLabs Organ col stores these
+# Manually entered, so check data for cluster names
+unique(clustLabs[,'Organ'])
+
+# The organ analysed here is Flower. Below saves organ names and prints Flower clusters
+organ='Flower'
+simpleNames = clustLabs[which(clustLabs[,'Organ']==organ), "Cell.type.suggested"]
+print(simpleNames)
+
+
+
+
+
+
+
+
 
 
 
