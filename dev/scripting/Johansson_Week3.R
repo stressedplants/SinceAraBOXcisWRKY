@@ -138,6 +138,8 @@ library(network)
 library(pheatmap)
 simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
 
+
+
 # Calculating node betweenness metric
 node_betweenness_all <- betweenness(simple_network)
 node_betweenness = node_betweenness_all[which(node_betweenness_all > 0)]
@@ -148,10 +150,33 @@ plot(sort(node_betweenness))
 
 
 
+# Calculating node centrality metric
+node_centrality_all <- alpha_centrality(simple_network)
+node_centrality = node_centrality_all[which(node_centrality_all > 0)]
+sort(node_centrality, decreasing = TRUE) [1:20]
+
+# Plots index vs node centrality metric
+plot(sort(node_centrality))
 
 
 
+# Calculating hub score metric
+node_hub_all <- hub_score(simple_network)$vector
+node_hub = node_hub_all[which(node_hub_all > 0)]
+sort(node_hub, decreasing = TRUE) [1:20]
 
+# Plots index vs node hub metric
+sort(plot(node_hub))
+
+
+
+# Comparing node betweenness vs node centrality
+plot(node_betweenness_all, node_centrality_all)
+
+
+
+# Comparing node hub vs node centrality
+plot(node_hub_all, node_centrality_all)
 
 
 
