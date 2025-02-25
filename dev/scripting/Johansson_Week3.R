@@ -94,3 +94,64 @@ length(which(! (edgesOld %in% edgesNew)))
 
 
 
+# Find important genes in the network
+
+# Different methods include finding:
+# - Well-connected hubs (hub_score).
+# - Influential/central genes (alpha centrality).
+# - Genes that bridge between different regions in the network (betweenness). 
+# The following calculates all three. 
+
+
+# Degree = TFs that have the most edges.
+
+# Transcription Factor edges from new and old networks
+tfsNew = table(newNetTopEdges[,1])
+tfsOld = table(araboxcisFiltered[,1])[names(tfsNew)]
+
+# Histogram of degrees of TFs vs frequency
+hist(as.numeric(tfsNew), 
+     main = 'SinceAraBOXcis', 
+     xlab = 'degree of TFs')
+
+# Do the same TFs have high degrees in AraBOXcis and the new network? 
+plot(as.numeric(tfsNew),
+     as.numeric(tfsOld),
+     xlab = 'Degree in SinceAraBOXcis',
+     ylab = 'Degree in AraBOXcis')
+
+# The 20 TFs with the highest degrees
+sort(tfsNew, decreasing = TRUE) [1:20]
+
+
+# Arabidopsis genes can be searched in arabidopsis.org - use the eFP browser tool. 
+
+# Three different metrics of TF importance will be calculated below. 
+
+install.packages('igraph')
+library(igraph)
+
+install.packages('network')
+library(network)
+
+# Load pheatmap, create a simple network
+library(pheatmap)
+simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
+
+# Calculating node betweenness metric
+node_betweenness_all <- betweenness(simple_network)
+node_betweenness = node_betweenness_all[which(node_betweenness_all > 0)]
+sort(node_betweenness, decreasing = TRUE) [1:20]
+
+# Plots index vs node_betweenness sorted
+plot(sort(node_betweenness))
+
+
+
+
+
+
+
+
+
+
