@@ -15,7 +15,7 @@ source('dev/utilities/dataprocessingHelperFunctions.R')
 install.packages("BiocManager")
 
 # Loading the flower data
-a = load("~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData", verbose=TRUE)
+a = load("/data/flowerdata.RData", verbose=TRUE)
 
 # Loading the original AraBOXcis network trained on bulk RNA-seq in seedlings
 araboxcis <- read.csv(file = 'data/gboxNetwork22C.csv',header = TRUE)
@@ -91,6 +91,9 @@ length(which(! (edgesNew %in% edgesOld)))
 
 # In the old network only
 length(which(! (edgesOld %in% edgesNew)))
+
+
+# Venn Diagram summarising overlap of old and new network edges added to the shared Google Drive folder.
 
 
 
@@ -177,6 +180,21 @@ plot(node_betweenness_all, node_centrality_all)
 
 # Comparing node hub vs node centrality
 plot(node_hub_all, node_centrality_all)
+
+
+# Spreadsheet of top 20 TFs for the three metrics added to the shared Google Drive folder.
+
+
+
+# Find associations between GO terms in the network
+
+# Are there certain GO terms that occur upstream or downstream of other GO terms in the network? 
+# The statistical tool PAFway will be employed. 
+
+a = load('/data/flowerdata.RData')
+source('dev/utilities/dataprocessingHelperFunctions.R')
+
+pafwayOut = pafway(GOconcat, newNetTopEdges, unique(goOfInterest))
 
 
 
