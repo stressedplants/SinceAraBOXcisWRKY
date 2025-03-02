@@ -9,16 +9,16 @@
 library(Matrix)
 
 # Loading helper functions
-source('dev/utilities/dataprocessingHelperFunctions.R')
+source('~/Documents/GitHub/SinceAraBOXcisWRKY/dev/utilities/dataprocessingHelperFunctions.R')
 
 # if (!require("BiocManager", quietly = TRUE))
-install.packages("BiocManager")
+# install.packages("BiocManager")
 
 # Loading the flower data
-a = load("/data/flowerdata.RData", verbose=TRUE)
+a = load("~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData", verbose=TRUE)
 
 # Loading the original AraBOXcis network trained on bulk RNA-seq in seedlings
-araboxcis <- read.csv(file = 'data/gboxNetwork22C.csv',header = TRUE)
+araboxcis <- read.csv(file = '~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv',header = TRUE)
 
 # A list of the Transcription Factors 
 tfs = unique(araboxcis[,1])
@@ -30,7 +30,7 @@ tfSubs = tfs[which(tfs %in% rownames(gbox))]
 
 # Making a network from scratch
 
-BiocManager::install("GENIE3")
+# BiocManager::install("GENIE3")
 library(GENIE3)
 
 # GENIE3 = network inference algorithm. Its parameters include:
@@ -64,7 +64,7 @@ ginieOutput[1:10,]
 # Load the network
 a = load('Flower_Network_nTree_5.RData')
 newNet = GENIE3::getLinkList(net)
-araboxcis = read.csv('data/gboxNetwork22C.csv', header = T)
+araboxcis = read.csv('~/Documents/Bioinformatics/Araboxcis/data/gboxNetwork22C.csv', header = T)
 
 
 
@@ -138,6 +138,7 @@ install.packages('network')
 library(network)
 
 # Load pheatmap, create a simple network
+install.packages("pheatmap")
 library(pheatmap)
 simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
 
@@ -191,8 +192,8 @@ plot(node_hub_all, node_centrality_all)
 # Are there certain GO terms that occur upstream or downstream of other GO terms in the network? 
 # The statistical tool PAFway will be employed. 
 
-a = load('/data/flowerdata.RData')
-source('dev/utilities/dataprocessingHelperFunctions.R')
+a = load('~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData')
+source('~/Documents/Bioinformatics/Araboxcis/dev/utilities/dataprocessingHelperFunctions.R')
 
 pafwayOut = pafway(GOconcat, newNetTopEdges, unique(goOfInterest))
 
