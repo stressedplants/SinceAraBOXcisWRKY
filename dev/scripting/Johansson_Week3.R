@@ -18,7 +18,7 @@ source('~/Documents/GitHub/SinceAraBOXcisWRKY/dev/utilities/dataprocessingHelper
 a = load("~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData", verbose=TRUE)
 
 # Loading the original AraBOXcis network trained on bulk RNA-seq in seedlings
-araboxcis <- read.csv(file = '~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv',header = TRUE)
+araboxcis <- read.csv(file = '~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv', header = TRUE)
 
 # A list of the Transcription Factors 
 tfs = unique(araboxcis[,1])
@@ -64,7 +64,7 @@ ginieOutput[1:10,]
 # Load the network
 a = load('Flower_Network_nTree_5.RData')
 newNet = GENIE3::getLinkList(net)
-araboxcis = read.csv('~/Documents/Bioinformatics/Araboxcis/data/gboxNetwork22C.csv', header = T)
+araboxcis = read.csv('~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv', header = T)
 
 
 
@@ -193,7 +193,7 @@ plot(node_hub_all, node_centrality_all)
 # The statistical tool PAFway will be employed. 
 
 a = load('~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData')
-source('~/Documents/Bioinformatics/Araboxcis/dev/utilities/dataprocessingHelperFunctions.R')
+source('~/Documents/GitHub/SinceAraBOXcisWRKY/dev/utilities/dataprocessingHelperFunctions.R')
 
 # PAFway statistical tool
 pafwayOut = pafway(GOconcat, newNetTopEdges, unique(goOfInterest))
