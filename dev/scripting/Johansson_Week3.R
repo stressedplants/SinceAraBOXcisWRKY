@@ -18,7 +18,7 @@ source('~/Documents/GitHub/SinceAraBOXcisWRKY/dev/utilities/dataprocessingHelper
 a = load("~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData", verbose=TRUE)
 
 # Loading the original AraBOXcis network trained on bulk RNA-seq in seedlings
-araboxcis <- read.csv(file = '~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv',header = TRUE)
+araboxcis <- read.csv(file = '~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv', header = TRUE)
 
 # A list of the Transcription Factors 
 tfs = unique(araboxcis[,1])
@@ -64,7 +64,7 @@ ginieOutput[1:10,]
 # Load the network
 a = load('Flower_Network_nTree_5.RData')
 newNet = GENIE3::getLinkList(net)
-araboxcis = read.csv('~/Documents/Bioinformatics/Araboxcis/data/gboxNetwork22C.csv', header = T)
+araboxcis = read.csv('~/Documents/GitHub/SinceAraBOXcisWRKY/data/gboxNetwork22C.csv', header = T)
 
 
 
@@ -131,14 +131,14 @@ sort(tfsNew, decreasing = TRUE) [1:20]
 
 # Three different metrics of TF importance will be calculated below. 
 
-install.packages('igraph')
+# install.packages('igraph')
 library(igraph)
 
-install.packages('network')
+# install.packages('network')
 library(network)
 
 # Load pheatmap, create a simple network
-install.packages("pheatmap")
+# install.packages("pheatmap")
 library(pheatmap)
 simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
 
@@ -193,9 +193,38 @@ plot(node_hub_all, node_centrality_all)
 # The statistical tool PAFway will be employed. 
 
 a = load('~/Documents/Bioinformatics/Araboxcis/data/flowerdata.RData')
-source('~/Documents/Bioinformatics/Araboxcis/dev/utilities/dataprocessingHelperFunctions.R')
+source('~/Documents/GitHub/SinceAraBOXcisWRKY/dev/utilities/dataprocessingHelperFunctions.R')
 
+# PAFway statistical tool
 pafwayOut = pafway(GOconcat, newNetTopEdges, unique(goOfInterest))
+rownames(pafwayOut) = colnames(pafwayOut) 
 
+# Only include rows and cols with at least one significant factor 
+atLeastOneSigRow = which(apply(pafwayOut,
+                               1,
+                               function(i) {
+                                 length(which(i < 0.05))
+                               }
+                               ) > 0
+                         )
+
+atLeastOneSigCol = which(apply(pafwayOut,
+                               1,
+                               function(i) {
+                                 length(which(i < 0.05))
+                               }
+                               ) > 0
+                         )
+
+pafwayInterestingOnly = pafwayOut[atLeastOneSigRow, atLeastOneSigCol]
+pafwayInterestingOnly
+
+# Terms associated with the cols are upstream of the terms associated with the rows. 
+# The values correspond to p-values, so smaller is more significant. 
+pheatmap(pafwayInterestingOnly)
+
+# Taking a log to zoom into most significant associations
+pheatmap(log(pafwayInterestingOnly,
+             10))
 
 
