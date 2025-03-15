@@ -381,6 +381,10 @@ top_betweenness <- as.data.frame(top_betweenness)
 
 top_degree <- as.data.frame(top_degree)
 
+top_alpha <- sort(node_centrality,decreasing = T)[1:10]
+
+top_alpha <- as.data.frame(top_alpha)
+
 # save Rdata
 
 save(node_betweenness,node_centrality,node_hub, file = 'data/centrality_seedlingd12.RData')
