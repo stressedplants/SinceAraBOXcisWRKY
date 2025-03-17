@@ -318,7 +318,8 @@ tfsOld = table(araboxcisFiltered[,1])[names(tfsNew)] # list the tfs from the new
 hist(as.numeric(tfsNew), main='SinceAraBOXcis', xlab='degree of TFs') # view a friquency distribution of degree of TFs
 
 # compare the degree of TFs in new and old network
-plot(as.numeric(tfsNew), as.numeric(tfsOld), xlab='degree in SinceAraBOXcis', ylab='degree in AraBOXcis')
+plot(as.numeric(tfsNew), as.numeric(tfsOld),
+     xlab='degree in SinceAraBOXcis', ylab='degree in AraBOXcis')
 
 # print the top 20 TFs in new network with the highest degrees 
 sort(tfsNew, decreasing=TRUE)[1:20]
@@ -355,21 +356,33 @@ plot(sort(node_hub), main = 'Degree Centrality')
 
 # plot betweenness against alpha
 
-plot(node_betweenness_all, node_centrality_all, xlab = 'Betweenness Centrality', ylab = 'Alpha Centrality', main = 'Betweenness vs Alpha')
+plot(node_betweenness_all, node_centrality_all, 
+     xlab = 'Betweenness Centrality', ylab = 'Alpha Centrality', 
+     main = 'Betweenness vs Alpha')
 
-plot(log10(node_betweenness_all), log10(node_centrality_all), xlab = 'Log Betweenness Centrality', ylab = 'Log Alpha Centrality', main = 'Betweenness vs Alpha')
+plot(log10(node_betweenness_all), log10(node_centrality_all), 
+     xlab = 'Log Betweenness Centrality', ylab = 'Log Alpha Centrality', 
+     main = 'Betweenness vs Alpha')
 
 # plot degree against alpha
 
-plot(node_hub_all, node_centrality_all, xlab = 'Degree Centrality', ylab = 'Alpha Centrality', main = 'Degree vs Alpha')
+plot(node_hub_all, node_centrality_all, 
+     xlab = 'Degree Centrality', ylab = 'Alpha Centrality', 
+     main = 'Degree vs Alpha')
 
-plot(log10(node_hub_all), log10(node_centrality_all), xlab = 'Log Degree Centrality', ylab = 'Log Alpha Centrality', main = 'Degree vs Alpha')
+plot(log10(node_hub_all), log10(node_centrality_all), 
+     xlab = 'Log Degree Centrality', ylab = 'Log Alpha Centrality', 
+     main = 'Degree vs Alpha')
 
 # plot degree against betweenness
 
-plot(node_hub_all, node_betweenness_all, xlab = 'Degree Centrality', ylab = 'Betweenness Centrality', main = 'Degree vs Betweenness')
+plot(node_hub_all, node_betweenness_all, 
+     xlab = 'Degree Centrality', ylab = 'Betweenness Centrality', 
+     main = 'Degree vs Betweenness')
 
-plot(log10(node_hub_all), log10(node_betweenness_all), xlab = 'Log Degree Centrality', ylab = 'Log Betweenness Centrality', main = 'Degree vs Betweenness')
+plot(log10(node_hub_all), log10(node_betweenness_all), 
+     xlab = 'Log Degree Centrality', ylab = 'Log Betweenness Centrality', 
+     main = 'Degree vs Betweenness')
 
 
 # Top genes
@@ -387,7 +400,8 @@ top_alpha <- as.data.frame(top_alpha)
 
 # save Rdata
 
-save(node_betweenness,node_centrality,node_hub, file = 'data/centrality_seedlingd12.RData')
+save(node_betweenness,node_centrality,node_hub, 
+     file = 'data/centrality_seedlingd12.RData')
 
 ## GO analysis of the network  ---------------------------------------------
 
