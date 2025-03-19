@@ -152,8 +152,17 @@ acs_pres_all <- rownames(acs_top_pres)[rowSums(acs_top_pres == 1) == ncol(acs_to
 bcs_pres_all <- rownames(bcs_top_pres)[rowSums(bcs_top_pres == 1) == ncol(bcs_top_pres)]
 dcs_pres_all <- rownames(dcs_top_pres)[rowSums(dcs_top_pres == 1) == ncol(dcs_top_pres)]
 
+# genes present in more than 6 stages
+acs_rowsum <- rowSums(acs_top_pres)
+bcs_rowsum <- rowSums(bcs_top_pres)
+dcs_rowsum <- rowSums(dcs_top_pres)
 
-# Heat map ----------------------------------------------------------------
+acs_pres_maj <- rownames(acs_top_pres)[which(acs_rowsum>6)]
+bcs_pres_maj <- rownames(bcs_top_pres)[which(bcs_rowsum>6)]
+dcs_pres_maj <- rownames(dcs_top_pres)[which(dcs_rowsum>6)]
+
+
+# Heat map ---rowSums()# Heat map ----------------------------------------------------------------
 
 # change NA values to 0
 acs_top_new <- acs_top
@@ -204,9 +213,6 @@ write_lines(acs_pres_all,'data/centrality/output/acs_pres_all.txt')
 write_lines(bcs_pres_all,'data/centrality/output/bcs_pres_all.txt')
 write_lines(dcs_pres_all,'data/centrality/output/dcs_pres_all.txt')
 
-# write(paste(acs_pres_all, collapse = ","),
-#       "data/centrality/output/acs_pres_all.txt")
-# write(paste(bcs_pres_all, collapse = ","),
-#       "data/centrality/output/bcs_pres_all.txt")
-# write(paste(dcs_pres_all, collapse = ","),
-#       "data/centrality/output/dcs_pres_all.txt")
+write_lines(acs_pres_maj, 'data/centrality/output/acs_pres_maj.txt')
+write_lines(bcs_pres_maj, 'data/centrality/output/bcs_pres_maj.txt')
+write_lines(dcs_pres_maj, 'data/centrality/output/dcs_pres_maj.txt')
