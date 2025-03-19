@@ -231,7 +231,6 @@ write.table(Simpson, file='data/seedling-d12_SimpsonPairs.txt', sep='\t', row.na
 
 # Week 3 ------------------------------------------------------------------
 
-
 ### If reload required ------------------------------------------------------
 # # Loading helper functions
 # source('dev/utilities/dataprocessingHelperFunctions.R')
@@ -427,10 +426,5 @@ pheatmap(pafwayInterestingOnly, main = 'Heatmap of Significancy, Gene Ontology',
 pheatmap(log(pafwayInterestingOnly, 10),main = 'Heatmap of Log Significance, Gene Ontology')
 
 
-
-
-
-
-
-
+# Week 5 ------------------------------------------------------------------
 

@@ -1,16 +1,18 @@
 # Data import and organisation --------------------------------------------
 
 # create an object with file path
-data_list <- c('data/centrality/centrality_seedlingd12.RData',
+data_list <- c('data/centrality/centrality_seedd0.RData',
+               'data/centrality/centrality_seedlingd3.RData',
                'data/centrality/centrality_seedlingd6.RData',
-               'data/centrality/centrality_flower.RData',
+               'data/centrality/centrality_seedlingd12.RData',
                'data/centrality/centrality_rosette21D.RData',
-               'data/centrality/centrality_Silique.RData',
                'data/centrality/centrality_rosette30.RData',
-               'data/centrality/centrality_seedd0.RData')
+               'data/centrality/centrality_stem.RData',
+               'data/centrality/centrality_Silique.RData',
+               'data/centrality/centrality_flower.RData')
 
 # create an object with names
-name_list <- c('sdd12','sdd6','flowr','rsd21','silqu','rsd30','seed')
+name_list <- c('seed','sdd3','sdd6','sdd12','rsd21','rsd30','stem','silqu','flowr')
 
 # initialise empty lists
 acs <- list()
