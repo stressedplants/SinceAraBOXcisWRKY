@@ -135,17 +135,14 @@ rownames(dcs_top_pres) <- row.names(dcs_top)
 # plot a heatmap from the truth table
 library(pheatmap)
 
-pheatmap(acs_top_pres,main = 'Alpha Centrality'
-         ,cluster_rows = FALSE, cluster_cols = FALSE, 
-         color = c("white", "green"))
+pheatmap(acs_top_pres,main = 'Alpha Centrality',
+         color = c("white", "brown"))
 
 pheatmap(bcs_top_pres,main = 'Betweenness Centrality',
-         cluster_rows = FALSE, cluster_cols = FALSE, 
-         color = c("white", "green"))
+         color = c("white", "brown"))
 
 pheatmap(dcs_top_pres,main = 'Degree Centrality',
-         cluster_rows = FALSE, cluster_cols = FALSE,
-         color = c("white", "green"))
+         color = c("white", "brown"))
 
 # genes present in all
 acs_pres_all <- rownames(acs_top_pres)[rowSums(acs_top_pres == 1) == ncol(acs_top_pres)]
@@ -216,3 +213,97 @@ write_lines(dcs_pres_all,'data/centrality/output/dcs_pres_all.txt')
 write_lines(acs_pres_maj, 'data/centrality/output/acs_pres_maj.txt')
 write_lines(bcs_pres_maj, 'data/centrality/output/bcs_pres_maj.txt')
 write_lines(dcs_pres_maj, 'data/centrality/output/dcs_pres_maj.txt')
+
+
+# Centrality comparison ---------------------------------------------------
+
+## Loading the new data ----------------------------------------------------
+
+# create an object with file path
+data_list <- c('data/centrality/All/centrality_all_seedlingd12.RData',
+               'data/centrality/All/centrality_all_seedling0days.RData',
+               'data/centrality/All/centrality_all_Rosette21D.RData',
+               'data/centrality/All/centrality_all_seedlingd6.RData',
+               'data/centrality/All/centrality_all_rosette30.RData',
+               'data/centrality/All/centrality_all_seedlingd3.RData',
+               'data/centrality/All/centrality_all_Silique.RData')
+
+# create an object with names
+name_list <- c('sdd12','seed','rsd21','sdd6','rsd30','sdd3','silqu')
+
+# initialise empty lists
+acs <- list()
+bcs <- list()
+dcs <- list()
+
+for (i in seq_along(data_list)) { # loop over the lenght of data_list
+  # load the data
+  load(data_list[i])
+  
+  # generate the variable names
+  ac_name <- paste0("ac_", name_list[i])
+  bc_name <- paste0("bc_", name_list[i])
+  dc_name <- paste0("dc_", name_list[i])
+  
+  # assign the loaded data to generated variable name
+  assign(ac_name, node_centrality_all)
+  assign(bc_name, node_betweenness_all)
+  assign(dc_name, node_hub_all)
+  
+  #create a list of variable names
+  acs <- append(acs, ac_name)
+  bcs <- append(bcs, bc_name)
+  dcs <- append(dcs, dc_name)
+  
+}
+
+remove(ac_name,bc_name,dc_name,node_betweenness_all,node_centrality_all,node_hub_all, 
+       i,data_list,name_list) #delete unnecessary variables
+
+## AC vs BC ----------------------------------------------------------------
+
+# Load necessary package
+library(ggplot2)
+
+# Create a data frame with all points
+ACvBC <- data.frame(
+  x = c(ac_sdd12, ac_sdd6, ac_seed, ac_rsd21, ac_rsd30,ac_sdd3,ac_silqu),
+  y = c(bc_sdd12, bc_sdd6, bc_seed, bc_rsd21, bc_rsd30,bc_sdd3,bc_silqu),
+  group = rep(c("Seedling Day12", "Seedling Day6", "Seed", "Rosette Day21", "Rosette Day30","Seedling Day3", "Silique"),
+              times = c(length(ac_sdd12), length(ac_sdd6), length(ac_seed), length(ac_rsd21), length(ac_rsd30),length(ac_sdd3),length(ac_silqu)))
+)
+
+# Plot using ggplot2 with log-log scaling
+ggplot(ACvBC, aes(x = x, y = y, color = group, shape = group)) +
+  geom_point() +
+  scale_x_log10() +  # Log scale for x-axis
+  scale_y_log10() +  # Log scale for y-axis
+  theme_minimal() +
+  labs(title = 'Alpha Centrality Vs Betweenness Centrality',
+       x = "Alpha Centrality Score (log scale)", y = "Betweenness Centrality Score (log scale)",
+       color = "Stage", shape = "Stage") +
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4", "plum3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11))  # Custom shapes
+
+## DC v BC -----------------------------------------------------------------
+###
+# Create a data frame with all points
+DCvBC <- data.frame(
+  x = c(dc_sdd12, dc_sdd6, dc_seed, dc_rsd21, dc_rsd30, dc_sdd3,dc_silqu),
+  y = c(bc_sdd12, bc_sdd6, bc_seed, bc_rsd21, bc_rsd30, bc_sdd3,bc_silqu),
+  group = rep(c("Seedling Day12", "Seedling Day6", "Seed", "Rosette Day21", "Rosette Day30", "Seedling Day3", "Silique"),
+              times = c(length(dc_sdd12), length(dc_sdd6), length(dc_seed), length(dc_rsd21), length(dc_rsd30), length(dc_sdd3),length(dc_silqu))
+))
+
+# Plot using ggplot2 with log-log scaling
+ggplot(DCvBC, aes(x = x, y = y, color = group,shape = group)) +
+  geom_point(size = 1.5) +
+  scale_x_log10(limits = c(0.00001, 1)) +  # Log scale for x-axis
+  scale_y_log10() +  # Log scale for y-axis
+  theme_minimal() +
+  labs(title = 'Degree Centrality Vs Betweenness Centrality',
+       x = "Degree Centrality Score (log scale)", y = "Betweenness Centrality Score (log scale)",
+       color = "Stage", shape = "Stage") +
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4","plum3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11))  # Custom shapes
+""

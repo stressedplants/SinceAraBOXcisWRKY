@@ -402,6 +402,9 @@ top_alpha <- as.data.frame(top_alpha)
 save(node_betweenness,node_centrality,node_hub, 
      file = 'data/centrality_seedlingd12.RData')
 
+save(node_betweenness_all,node_centrality_all,node_hub_all, 
+     file = 'data/centrality_all_seedlingd12.RData')
+
 ## GO analysis of the network  ---------------------------------------------
 
 a = load('data/functionalData.RData')
