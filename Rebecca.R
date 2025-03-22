@@ -197,17 +197,35 @@ simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
 
 node_betweenness_all <- betweenness(simple_network)
 node_betweenness=node_betweenness_all[which(node_betweenness_all>0)]
-sort(node_betweenness, decreasing=TRUE)[1:20]
+sort(node_betweenness, decreasing=TRUE)[1:10]
 
 plot(sort(node_betweenness))
 
 #abline(h=5000)
 
+node_centrality_all <- alpha_centrality(simple_network, alpha=0.9)
+
 node_centrality_all <- alpha_centrality(simple_network)
 node_centrality=node_centrality_all[which(node_centrality_all>0)]
 sort(node_centrality, decreasing=TRUE)[1:20]
 
+plot(sort(node_centrality))
 
+#abline(h=5000)
+
+node_hub_all <- hub_score(simple_network)$vector
+node_hub=node_hub_all[which(node_hub_all>0)]
+sort(node_hub, decreasing=TRUE)[1:20]
+
+plot(sort(node_hub))
+
+#abline(h=0.6)
+
+plot(node_betweenness_all, node_centrality_all)
+
+plot(node_hub_all, node_centrality_all)
+
+plot(node_hub_all, node_betweenness_all)
 
 ############
 ############ Find associations between GO terms in the network
@@ -240,11 +258,46 @@ pheatmap(
 
 
 
+save(node_betweenness, file = 'data/centrality_rosette30.RData')
+
+
+save(node_betweenness_all, 
+     file = 'data/centrality_all_rosette30.RData')
+
+save(node_betweenness_all,node_centrality_all,node_hub_all, 
+     file = 'data/centrality_all_rosette30.RData')
 
 
 
+#########################################################################################
 
+# Open a new file in the directory named exported_data
 
+# 1. Export your network edge list
+# This uses your GENIE3 network 
+write.csv(newNetTopEdges, file = "exported_data/Rosette_30d_network.csv", row.names = FALSE)
 
+# 2. Export your GO enrichment results (the pafway output)
+# First create a long-format table from your pafwayInterestingOnly matrix
+go_results <- data.frame()
+for (row_term in rownames(pafwayInterestingOnly)) {
+  for (col_term in colnames(pafwayInterestingOnly)) {
+    go_results <- rbind(go_results, data.frame(
+      DownstreamTerm = row_term,
+      UpstreamTerm = col_term,
+      pValue = pafwayInterestingOnly[row_term, col_term]
+    ))
+  }
+}
 
+# Export the GO results
+write.csv(go_results, file = "exported_data/Rosette_30d_GO_results.csv", row.names = FALSE)
+
+# 3. Export the GO terms that were found to be significant 
+sig_go_terms <- unique(c(rownames(pafwayInterestingOnly), colnames(pafwayInterestingOnly)))
+write.csv(data.frame(GOTerm = sig_go_terms), file = "exported_data/Rosette_30d_sig_GO_terms.csv", row.names = FALSE)
+
+# Optional: Export the full pafwayOut matrix before filtering for significant terms
+# This contains all GO terms analyzed, not just the significant ones
+write.csv(pafwayOut, file = "exported_data/Seedling_6d_full_pafway_matrix.csv")
 
