@@ -227,8 +227,9 @@ write.table(Simpson, file='data/seedling-d12_SimpsonPairs.txt', sep='\t', row.na
 
 
 
-# Week 3 ------------------------------------------------------------------
 
+
+# Week 3 ------------------------------------------------------------------
 
 ### If reload required ------------------------------------------------------
 # # Loading helper functions
@@ -316,7 +317,8 @@ tfsOld = table(araboxcisFiltered[,1])[names(tfsNew)] # list the tfs from the new
 hist(as.numeric(tfsNew), main='SinceAraBOXcis', xlab='degree of TFs') # view a friquency distribution of degree of TFs
 
 # compare the degree of TFs in new and old network
-plot(as.numeric(tfsNew), as.numeric(tfsOld), xlab='degree in SinceAraBOXcis', ylab='degree in AraBOXcis')
+plot(as.numeric(tfsNew), as.numeric(tfsOld),
+     xlab='degree in SinceAraBOXcis', ylab='degree in AraBOXcis')
 
 # print the top 20 TFs in new network with the highest degrees 
 sort(tfsNew, decreasing=TRUE)[1:20]
@@ -326,47 +328,82 @@ library(igraph)
 library(network)
 
 library(pheatmap)
-## node betweenness
+## Betweenness Centrality
 simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
 
 node_betweenness_all <- betweenness(simple_network)
 node_betweenness <- node_betweenness_all[which(node_betweenness_all>0)]
 sort(node_betweenness, decreasing = T)[1:20]
 
-plot(sort(node_betweenness))
+plot(sort(node_betweenness), main = 'Betweenness Centrality')
 
-## node centrality !!!! DIDN'T WORK
+## Alpha Centrality
 #abline(h=5000)
 
-node_centrality_all <- alpha_centrality(simple_network)
-gcnode_centrality=node_centrality_all[which(node_centrality_all>0)]
+node_centrality_all <- alpha_centrality(simple_network, alpha=0.9)
+node_centrality=node_centrality_all[which(node_centrality_all>0)]
 sort(node_centrality, decreasing=TRUE)[1:20]
 
-plot(sort(node_centrality))
+plot(sort(node_centrality), main = 'Alpha Centrality')
 
-## node hub
+## Degree Centrality
 node_hub_all <- hub_score(simple_network)$vector
 node_hub=node_hub_all[which(node_hub_all>0)]
 sort(node_hub, decreasing=TRUE)[1:20]
 
-plot(sort(node_hub))
+plot(sort(node_hub), main = 'Degree Centrality')
 
-# plot betweenness against centrality
+# plot betweenness against alpha
 
-plot(node_betweenness_all, node_centrality_all)
+plot(node_betweenness_all, node_centrality_all, 
+     xlab = 'Betweenness Centrality', ylab = 'Alpha Centrality', 
+     main = 'Betweenness vs Alpha')
 
-# plot hub against centrality
+plot(log10(node_betweenness_all), log10(node_centrality_all), 
+     xlab = 'Log Betweenness Centrality', ylab = 'Log Alpha Centrality', 
+     main = 'Betweenness vs Alpha')
 
-plot(node_hub_all, node_centrality_all)
+# plot degree against alpha
 
-# plot hubs against betweenness
+plot(node_hub_all, node_centrality_all, 
+     xlab = 'Degree Centrality', ylab = 'Alpha Centrality', 
+     main = 'Degree vs Alpha')
 
-plot(node_hub_all, node_betweenness_all)
+plot(log10(node_hub_all), log10(node_centrality_all), 
+     xlab = 'Log Degree Centrality', ylab = 'Log Alpha Centrality', 
+     main = 'Degree vs Alpha')
+
+# plot degree against betweenness
+
+plot(node_hub_all, node_betweenness_all, 
+     xlab = 'Degree Centrality', ylab = 'Betweenness Centrality', 
+     main = 'Degree vs Betweenness')
+
+plot(log10(node_hub_all), log10(node_betweenness_all), 
+     xlab = 'Log Degree Centrality', ylab = 'Log Betweenness Centrality', 
+     main = 'Degree vs Betweenness')
 
 
+# Top genes
+top_betweenness <- sort(node_betweenness,decreasing = T)[1:10]
 
+top_degree <- sort(node_hub,decreasing = T)[1:10]
 
+top_betweenness <- as.data.frame(top_betweenness)
 
+top_degree <- as.data.frame(top_degree)
+
+top_alpha <- sort(node_centrality,decreasing = T)[1:10]
+
+top_alpha <- as.data.frame(top_alpha)
+
+# save Rdata
+
+save(node_betweenness,node_centrality,node_hub, 
+     file = 'data/centrality_seedlingd12.RData')
+
+save(node_betweenness_all,node_centrality_all,node_hub_all, 
+     file = 'data/centrality_all_seedlingd12.RData')
 
 ## GO analysis of the network  ---------------------------------------------
 
@@ -392,10 +429,5 @@ pheatmap(pafwayInterestingOnly, main = 'Heatmap of Significancy, Gene Ontology',
 pheatmap(log(pafwayInterestingOnly, 10),main = 'Heatmap of Log Significance, Gene Ontology')
 
 
-
-
-
-
-
-
+# Week 5 ------------------------------------------------------------------
 
