@@ -226,10 +226,12 @@ data_list <- c('data/centrality/All/centrality_all_seedlingd12.RData',
                'data/centrality/All/centrality_all_seedlingd6.RData',
                'data/centrality/All/centrality_all_rosette30.RData',
                'data/centrality/All/centrality_all_seedlingd3.RData',
-               'data/centrality/All/centrality_all_Silique.RData')
+               'data/centrality/All/centrality_all_Silique.RData',
+               'data/centrality/All/centrality_all_flower.RData',
+               'data/centrality/All/centrality_all_stem.RData')
 
 # create an object with names
-name_list <- c('sdd12','seed','rsd21','sdd6','rsd30','sdd3','silqu')
+name_list <- c('sdd12','seed','rsd21','sdd6','rsd30','sdd3','silqu','flowr','stem')
 
 # initialise empty lists
 acs <- list()
@@ -267,10 +269,13 @@ library(ggplot2)
 
 # Create a data frame with all points
 ACvBC <- data.frame(
-  x = c(ac_sdd12, ac_sdd6, ac_seed, ac_rsd21, ac_rsd30,ac_sdd3,ac_silqu),
-  y = c(bc_sdd12, bc_sdd6, bc_seed, bc_rsd21, bc_rsd30,bc_sdd3,bc_silqu),
-  group = rep(c("Seedling Day12", "Seedling Day6", "Seed", "Rosette Day21", "Rosette Day30","Seedling Day3", "Silique"),
-              times = c(length(ac_sdd12), length(ac_sdd6), length(ac_seed), length(ac_rsd21), length(ac_rsd30),length(ac_sdd3),length(ac_silqu)))
+  x = c(ac_sdd12, ac_sdd6, ac_seed, ac_rsd21, ac_rsd30,ac_sdd3,ac_silqu,ac_flowr,ac_stem),
+  y = c(bc_sdd12, bc_sdd6, bc_seed, bc_rsd21, bc_rsd30,bc_sdd3,bc_silqu,bc_flowr,bc_stem),
+  group = rep(c("Seedling Day12", "Seedling Day6", "Seed", "Rosette Day21", 
+                "Rosette Day30","Seedling Day3", "Silique","Flower","Stem"),
+              times = c(length(ac_sdd12), length(ac_sdd6), length(ac_seed),
+                        length(ac_rsd21), length(ac_rsd30),length(ac_sdd3),
+                         length(ac_silqu),length(ac_flowr),length(ac_stem)))
 )
 
 # Plot using ggplot2 with log-log scaling
@@ -282,17 +287,19 @@ ggplot(ACvBC, aes(x = x, y = y, color = group, shape = group)) +
   labs(title = 'Alpha Centrality Vs Betweenness Centrality',
        x = "Alpha Centrality Score (log scale)", y = "Betweenness Centrality Score (log scale)",
        color = "Stage", shape = "Stage") +
-  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4", "plum3"))+  # Custom colors
-  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11))  # Custom shapes
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4", "plum3","orangered","cyan3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))  # Custom shapes
 
 ## DC v BC -----------------------------------------------------------------
-###
 # Create a data frame with all points
 DCvBC <- data.frame(
-  x = c(dc_sdd12, dc_sdd6, dc_seed, dc_rsd21, dc_rsd30, dc_sdd3,dc_silqu),
-  y = c(bc_sdd12, bc_sdd6, bc_seed, bc_rsd21, bc_rsd30, bc_sdd3,bc_silqu),
-  group = rep(c("Seedling Day12", "Seedling Day6", "Seed", "Rosette Day21", "Rosette Day30", "Seedling Day3", "Silique"),
-              times = c(length(dc_sdd12), length(dc_sdd6), length(dc_seed), length(dc_rsd21), length(dc_rsd30), length(dc_sdd3),length(dc_silqu))
+  x = c(dc_sdd12, dc_sdd6, dc_seed, dc_rsd21, dc_rsd30, dc_sdd3,dc_silqu,dc_flowr,dc_stem),
+  y = c(bc_sdd12, bc_sdd6, bc_seed, bc_rsd21, bc_rsd30, bc_sdd3,bc_silqu,bc_flowr,bc_stem),
+  group = rep(c("Seedling Day12", "Seedling Day6", "Seed", "Rosette Day21", 
+                "Rosette Day30", "Seedling Day3", "Silique","Flower","Stem"),
+              times = c(length(dc_sdd12), length(dc_sdd6), length(dc_seed), 
+                        length(dc_rsd21), length(dc_rsd30), length(dc_sdd3),
+                        length(dc_silqu),length(dc_flowr),length(dc_stem))
 ))
 
 # Plot using ggplot2 with log-log scaling
@@ -304,6 +311,187 @@ ggplot(DCvBC, aes(x = x, y = y, color = group,shape = group)) +
   labs(title = 'Degree Centrality Vs Betweenness Centrality',
        x = "Degree Centrality Score (log scale)", y = "Betweenness Centrality Score (log scale)",
        color = "Stage", shape = "Stage") +
-  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4","plum3"))+  # Custom colors
-  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11))  # Custom shapes
-""
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4","plum3","orangered","cyan3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))  # Custom shapes
+
+
+# GO terms analysis using TAIR--------------------------------------------------
+#source('dev/utilities/dataprocessingHelperFunctions.R')
+
+library(readr)
+library(tidyverse)
+
+num = 25
+
+## ACs ---------------------------------------------------------------------
+acs_maj <- read_tsv('data/centrality/TAIR_search_res/ACs_maj.tsv')
+acs_maj <- acs_maj[,c("Locus","Keywords")]
+
+acs_maj_kc<- acs_maj %>%
+  separate_rows(Keywords, sep = ";") %>%  # Split on ';' delimiter
+  count(Keywords, sort = TRUE)  # Count occurrences
+
+# Select top num keywords
+acs_maj_kc_top <- acs_maj_kc %>% 
+  slice_max(n, n = num)  # Get top 10 most frequent keywords
+
+# Plot frequency graph
+ggplot(acs_maj_kc_top, aes(x = reorder(Keywords, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +  # Flip axes for better readability
+  labs(title = "High Alpha Centrality Genes", x = "GO Terms", y = "Frequency") +
+  theme_minimal()
+
+
+
+## BCs ---------------------------------------------------------------------
+bcs_maj <- read_tsv('data/centrality/TAIR_search_res/BCs_maj.tsv')
+bcs_maj <- bcs_maj[,c("Locus","Keywords")]
+
+bcs_maj_kc<- bcs_maj %>%
+  separate_rows(Keywords, sep = ";") %>%  # Split on ';' delimiter
+  count(Keywords, sort = TRUE)  # Count occurrences
+
+# Select top num keywords
+bcs_maj_kc_top <- bcs_maj_kc %>% 
+  slice_max(n, n = num)  # Get top 10 most frequent keywords
+
+# Plot frequency graph
+ggplot(bcs_maj_kc_top, aes(x = reorder(Keywords, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +  # Flip axes for better readability
+  labs(title = "High Betweenness Genes", x = "GO Terms", y = "Frequency") +
+  theme_minimal()
+
+
+## DCs ---------------------------------------------------------------------
+
+dcs_maj <- read_tsv('data/centrality/TAIR_search_res/DCs_maj.tsv')
+dcs_maj <- dcs_maj[,c("Locus","Keywords")]
+
+dcs_maj_kc<- dcs_maj %>%
+  separate_rows(Keywords, sep = ";") %>%  # Split on ';' delimiter
+  count(Keywords, sort = TRUE)  # Count occurrences
+
+# Select top num keywords
+dcs_maj_kc_top <- dcs_maj_kc %>% 
+  slice_max(n, n = num)  # Get top 10 most frequent keywords
+
+# Plot frequency graph
+ggplot(dcs_maj_kc_top, aes(x = reorder(Keywords, n), y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +  # Flip axes for better readability
+  labs(title = "High Degree Genes", x = "GO Terms", y = "Frequency") +
+  theme_minimal()
+
+
+# GO term analysis using given functional data ----------------------------
+
+library(readr)
+library(tidyverse)
+library(stringr)
+
+
+load('data/functionalData.RData')
+
+GO_df <- data.frame(
+  Locus = names(GOconcat), 
+  Keywords = unlist(GOconcat), 
+  stringsAsFactors = FALSE
+)
+
+num = 5
+
+## ACs ---------------------------------------------------------------------
+
+acs_maj <- read_lines('data/centrality/output/acs_pres_maj.txt')
+
+# Filter for Locus values present in acs_maj
+acs_maj_fn <- GO_df %>% 
+  filter(Locus %in% acs_maj)
+
+# Count occurrences of goOfInterest terms in acs_maj_fn$Keywords
+acs_gooi_cnt <- sapply(goOfInterest, function(term) {
+  sum(str_detect(acs_maj_fn$Keywords, fixed(term, ignore_case = TRUE)))
+})
+
+
+# Convert to a data frame
+acs_gooi_cnt <- data.frame(Term = names(acs_gooi_cnt), Frequency = acs_gooi_cnt)
+acs_gooi_cnt <- acs_gooi_cnt %>% arrange(desc(Frequency))
+
+# Plot top num terms
+ggplot(acs_gooi_cnt %>% slice_max(Frequency, n = num), 
+       aes(x = reorder(Term, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top GO terms in genes with high Alpha Centrality",
+       x = "GO Terms",
+       y = "Frequency of GO term") +
+  theme_minimal()
+
+
+## BCs ---------------------------------------------------------------------
+
+bcs_maj <- read_lines('data/centrality/output/bcs_pres_maj.txt')
+
+# Filter for Locus values present in bcs_maj
+bcs_maj_fn <- GO_df %>% 
+  filter(Locus %in% bcs_maj)
+
+# Count occurrences of goOfInterest terms in bcs_maj_fn$Keywords
+bcs_gooi_cnt <- sapply(goOfInterest, function(term) {
+  sum(str_detect(bcs_maj_fn$Keywords, fixed(term, ignore_case = TRUE)))
+})
+
+
+# Convert to a data frame
+bcs_gooi_cnt <- data.frame(Term = names(bcs_gooi_cnt), Frequency = bcs_gooi_cnt)
+bcs_gooi_cnt <- bcs_gooi_cnt %>% arrange(desc(Frequency))
+
+# Plot top num terms
+ggplot(bcs_gooi_cnt %>% slice_max(Frequency, n = num), 
+       aes(x = reorder(Term, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "brown") +
+  coord_flip() +
+  labs(title = "Top GO terms in genes with high Betweenness Centrality",
+       x = "GO Terms",
+       y = "Frequency of GO term") +
+  theme_minimal()+
+  scale_y_continuous(limits = c(0,10))+
+  theme(axis.text.y = element_text(size = 12))+
+  scale_x_discrete(labels = function(x) tools::toTitleCase(x))
+
+
+
+## DCs ---------------------------------------------------------------------
+
+dcs_maj <- read_lines('data/centrality/output/dcs_pres_maj.txt')
+
+# Filter for Locus values present in dcs_maj
+dcs_maj_fn <- GO_df %>% 
+  filter(Locus %in% dcs_maj)
+
+# Count occurrences of goOfInterest terms in dcs_maj_fn$Keywords
+dcs_gooi_cnt <- sapply(goOfInterest, function(term) {
+  sum(str_detect(dcs_maj_fn$Keywords, fixed(term, ignore_case = TRUE)))
+})
+
+
+# Convert to a data frame
+dcs_gooi_cnt <- data.frame(Term = names(dcs_gooi_cnt), Frequency = dcs_gooi_cnt)
+dcs_gooi_cnt <- dcs_gooi_cnt %>% arrange(desc(Frequency))
+
+# Plot top num terms
+ggplot(dcs_gooi_cnt %>% slice_max(Frequency, n = num), 
+       aes(x = reorder(Term, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "brown") +
+  coord_flip() +
+  labs(title = "Top GO terms in genes with high Degree Centrality",
+       x = "GO Terms",
+       y = "Frequency of GO term") +
+  theme_minimal()+
+  theme(axis.text.y = element_text(size = 12))+
+  scale_x_discrete(labels = function(x) tools::toTitleCase(x))
+
+

@@ -431,3 +431,88 @@ pheatmap(log(pafwayInterestingOnly, 10),main = 'Heatmap of Log Significance, Gen
 
 # Week 5 ------------------------------------------------------------------
 
+## unnecessary -------------------------------------------------------------
+
+# # load the helper functions
+# source('dev/utilities/dataprocessingHelperFunctions.R')
+# 
+# #load the generated netweork
+# load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+# 
+# # conver the Giene3 output matrix to an adjacency matrix and sort by the score
+# cyto_inpt=convertToAdjacency(net, 0) 
+# 
+# cyto_inpt=cyto_inpt%>% sort_by(y = cyto_inpt$X3) %>% slice_head(n=1000)
+# 
+# write_csv(cyto_inpt,'data/network//network_adj.csv')
+
+
+## Homework ----------------------------------------------------------------
+library(GENIE3)
+library(tidyverse)
+
+# load the data
+araboxcis <- read.csv(file = 'data/gboxNetwork22C.csv',header = TRUE)
+
+load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+sdd12 = GENIE3::getLinkList(net)
+colnames(sdd12) <- c("from", "to", "score")
+
+load('data/seedling6d_network_nTree_10.RData')
+sdd6 = newNetTopEdges
+colnames(sdd6) <- c("from", "to", "score")
+
+remove(net)
+remove(newNetTopEdges)
+# join the data sets to find the common edges
+
+sdd12_ara_common_edges <- inner_join(araboxcis, sdd12, by = c("from", "to"))
+sdd6_sdd12_common_edges = inner_join(sdd6,sdd12,by = c("from","to"))
+all_common_edges = inner_join(sdd6_sdd12_common_edges,araboxcis, by = c("from","to"))
+
+# Filter out genes that only appear in one edge
+sdd12_ara_common_edges <- sdd12_ara_common_edges %>% group_by(to) %>%
+  mutate(edge_count = n()) %>% ungroup()
+
+sdd12_ara_common_edges <- sdd12_ara_common_edges %>% filter(edge_count > 1)
+
+
+sdd6_sdd12_common_edges <- sdd6_sdd12_common_edges %>% group_by(to) %>%
+  mutate(edge_count = n()) %>% ungroup()
+
+sdd6_sdd12_common_edges <- sdd6_sdd12_common_edges %>% filter(edge_count > 1)
+
+
+all_common_edges <- all_common_edges %>% group_by(to) %>%
+  mutate(edge_count = n()) %>% ungroup()
+
+all_common_edges <- all_common_edges %>% filter(edge_count > 1)
+
+# calculate average score and retreve top 1000 genes
+sdd12_ara_common_edges = sdd12_ara_common_edges %>% mutate(avg_score = (score.x+score.y)/2)
+sdd12_ara_common_edges = sdd12_ara_common_edges %>% 
+  sort_by(sdd12_ara_common_edges$avg_score,decreasing=T) %>% slice_head(n=1000) %>% 
+  select(-score.x, -score.y, -edge_count)
+
+
+sdd6_sdd12_common_edges = sdd6_sdd12_common_edges %>% mutate(avg_score = (score.x+score.y)/2)
+sdd6_sdd12_common_edges = sdd6_sdd12_common_edges %>% 
+  sort_by(sdd6_sdd12_common_edges$avg_score,decreasing=T) %>% slice_head(n=1000) %>% 
+  select(-score.x, -score.y, -edge_count)
+
+
+all_common_edges = all_common_edges %>% mutate(avg_score = (score.x+score.y+score)/3)
+all_common_edges = all_common_edges %>%  sort_by(all_common_edges$avg_score, decreasing = T) %>% slice_head(n=1000) %>% 
+  select(-score.x, -score.y, -edge_count, -score)
+
+
+
+### write the files
+colnames(sdd12_ara_common_edges) <- c("regulatoryGene", "targetGene", "weight")
+write.csv(sdd12_ara_common_edges, 'data/network/sdd12_ara.csv', row.names = FALSE)
+
+colnames(sdd6_sdd12_common_edges) <- c("regulatoryGene", "targetGene", "weight")
+write.csv2(sdd6_sdd12_common_edges,'data/network/sdd6_sdd12.csv', row.names = FALSE)
+
+colnames(all_common_edges) <- c("regulatoryGene", "targetGene", "weight")
+write.csv2(all_common_edges,'data/network/sdd6_sdd12_ara.csv', row.names = FALSE)
