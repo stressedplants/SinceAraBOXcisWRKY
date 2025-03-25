@@ -159,7 +159,15 @@ bcs_pres_maj <- rownames(bcs_top_pres)[which(bcs_rowsum>6)]
 dcs_pres_maj <- rownames(dcs_top_pres)[which(dcs_rowsum>6)]
 
 
-# Heat map ---rowSums()# Heat map ----------------------------------------------------------------
+## poster recolour ---------------------------------------------------------
+pheatmap(acs_top_pres,main = 'Alpha Centrality',
+         color = c("white", "brown"))
+pheatmap(bcs_top_pres,main = 'Betweenness Centrality',
+         color = c("white", "brown"))
+
+
+
+# Heat map ----------------------------------------------------------------
 
 # change NA values to 0
 acs_top_new <- acs_top
@@ -280,15 +288,54 @@ ACvBC <- data.frame(
 
 # Plot using ggplot2 with log-log scaling
 ggplot(ACvBC, aes(x = x, y = y, color = group, shape = group)) +
-  geom_point() +
+  geom_point(size = 2.5) +
   scale_x_log10() +  # Log scale for x-axis
   scale_y_log10() +  # Log scale for y-axis
   theme_minimal() +
   labs(title = 'Alpha Centrality Vs Betweenness Centrality',
-       x = "Alpha Centrality Score (log scale)", y = "Betweenness Centrality Score (log scale)",
+       x = "Alpha Centrality Score (log scale)", 
+       y = "Betweenness Centrality Score (log scale)",
        color = "Stage", shape = "Stage") +
-  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4", "plum3","orangered","cyan3"))+  # Custom colors
-  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))  # Custom shapes
+  scale_color_manual(values = c("red", "blue", "green", "purple",
+                                "orange","chocolate4", "plum3",
+                                "orangered","cyan3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))+  # Custom shapes
+  theme(axis.text=element_text(size=15),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=40),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+
+
+### Poster recolour ---------------------------------------------------------
+# Plot recolour
+ggplot(ACvBC, aes(x = x, y = y, color = group, shape = group)) +
+  geom_point(size = 2.5) +
+  scale_x_log10() +  # Log scale for x-axis
+  scale_y_log10() +  # Log scale for y-axis
+  theme_minimal() +
+  labs(title = 'Alpha Centrality Vs Betweenness Centrality',
+       x = "Alpha Centrality Score (log scale)", 
+       y = "Betweenness Centrality Score (log scale)",
+       color = "Stage", shape = "Stage") +
+  scale_color_manual(values = c("red", "blue", "green", "purple",
+                                "orange","chocolate4", "plum3",
+                                "orangered","cyan3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))+  # Custom shapes
+  theme(axis.text=element_text(size=15),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=40),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))+
+  theme(plot.background = element_rect(fill = '#759D5D'),
+        panel.grid.major=element_line(colour="#3a4e2e"),
+        panel.grid.minor=element_line(colour="#3a4e2e"),
+        plot.title = element_text(colour = "#ffffff"),
+        axis.title = element_text(colour = "#ffffff"),
+        axis.text = element_text(colour = "#ffffff"),
+        legend.text=element_text(colour = "#ffffff"),
+        legend.title=element_text(colour = "#ffffff"))
+
 
 ## DC v BC -----------------------------------------------------------------
 # Create a data frame with all points
@@ -304,15 +351,54 @@ DCvBC <- data.frame(
 
 # Plot using ggplot2 with log-log scaling
 ggplot(DCvBC, aes(x = x, y = y, color = group,shape = group)) +
-  geom_point(size = 1.5) +
+  geom_point(size = 2.5) +
   scale_x_log10(limits = c(0.00001, 1)) +  # Log scale for x-axis
   scale_y_log10() +  # Log scale for y-axis
   theme_minimal() +
   labs(title = 'Degree Centrality Vs Betweenness Centrality',
-       x = "Degree Centrality Score (log scale)", y = "Betweenness Centrality Score (log scale)",
+       x = "Degree Centrality Score (log scale)", 
+       y = "Betweenness Centrality Score (log scale)",
        color = "Stage", shape = "Stage") +
-  scale_color_manual(values = c("red", "blue", "green", "purple", "orange","chocolate4","plum3","orangered","cyan3"))+  # Custom colors
-  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))  # Custom shapes
+  scale_color_manual(values = c("red", "blue", "green", "purple",
+                                "orange", "chocolate4", "plum3",
+                                "orangered", "cyan3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))+  # Custom shapes
+  theme(axis.text=element_text(size=15),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=40),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+
+
+### Poster recolour ---------------------------------------------------------
+
+# Plot recolour
+ggplot(DCvBC, aes(x = x, y = y, color = group,shape = group)) +
+  geom_point(size = 2.5) +
+  scale_x_log10(limits = c(0.00001, 1)) +  # Log scale for x-axis
+  scale_y_log10() +  # Log scale for y-axis
+  theme_minimal() +
+  labs(title = 'Degree Centrality Vs Betweenness Centrality',
+       x = "Degree Centrality Score (log scale)", 
+       y = "Betweenness Centrality Score (log scale)",
+       color = "Stage", shape = "Stage") +
+  scale_color_manual(values = c("red", "blue", "green", "purple",
+                                "orange", "chocolate4", "plum3",
+                                "orangered", "cyan3"))+  # Custom colors
+  scale_shape_manual(values = c(16, 17, 18, 15, 8, 9, 11,7,13))+  # Custom shapes
+  theme(axis.text=element_text(size=15),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=40),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))+
+  theme(plot.background = element_rect(fill = '#759D5D'),
+        panel.grid.major=element_line(colour="#3a4e2e"),
+        panel.grid.minor=element_line(colour="#3a4e2e"),
+        plot.title = element_text(colour = "#ffffff"),
+        axis.title = element_text(colour = "#ffffff"),
+        axis.text = element_text(colour = "#ffffff"),
+        legend.text=element_text(colour = "#ffffff"),
+        legend.title=element_text(colour = "#ffffff"))
 
 
 # GO terms analysis using TAIR--------------------------------------------------
@@ -459,9 +545,40 @@ ggplot(bcs_gooi_cnt %>% slice_max(Frequency, n = num),
        y = "Frequency of GO term") +
   theme_minimal()+
   scale_y_continuous(limits = c(0,10))+
-  theme(axis.text.y = element_text(size = 12))+
-  scale_x_discrete(labels = function(x) tools::toTitleCase(x))
+  scale_x_discrete(labels = function(x) tools::toTitleCase(x))+
+  theme(axis.text=element_text(size=20,
+                               margin = margin(, b = 30, l = 50)),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=35),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
 
+
+### Poster recolour ---------------------------------------------------------
+
+# Replot with colours
+ggplot(bcs_gooi_cnt %>% slice_max(Frequency, n = num), 
+       aes(x = reorder(Term, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "#275B42") +
+  coord_flip() +
+  labs(title = "Top GO terms in genes with high Betweenness Centrality",
+       x = "GO Terms",
+       y = "Frequency of GO term") +
+  theme_minimal()+
+  scale_y_continuous(limits = c(0,10))+
+  scale_x_discrete(labels = function(x) tools::toTitleCase(x))+
+  theme(axis.text=element_text(size=20,
+                               margin = margin(, b = 30, l = 50)),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=35),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))+
+  theme(plot.background = element_rect(fill = '#759D5D'),
+        panel.grid.major=element_line(colour="#3a4e2e"),
+        panel.grid.minor=element_line(colour="#3a4e2e"),
+        plot.title = element_text(colour = "#ffffff"),
+        axis.title = element_text(colour = "#ffffff"),
+        axis.text = element_text(colour = "#ffffff"))
 
 
 ## DCs ---------------------------------------------------------------------
@@ -491,7 +608,37 @@ ggplot(dcs_gooi_cnt %>% slice_max(Frequency, n = num),
        x = "GO Terms",
        y = "Frequency of GO term") +
   theme_minimal()+
-  theme(axis.text.y = element_text(size = 12))+
-  scale_x_discrete(labels = function(x) tools::toTitleCase(x))
+  scale_x_discrete(labels = function(x) tools::toTitleCase(x))+
+  theme(axis.text=element_text(size=20,
+                               margin = margin(, b = 30, l = 50)),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=35),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20))
+
+### Poster recolour ---------------------------------------------------------
+
+# Replot with colours
+ggplot(dcs_gooi_cnt %>% slice_max(Frequency, n = num), 
+       aes(x = reorder(Term, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "#275B42") +
+  coord_flip() +
+  labs(title = "Top GO terms in genes with high Degree Centrality",
+       x = "GO Terms",
+       y = "Frequency of GO term") +
+  theme_minimal()+
+  scale_x_discrete(labels = function(x) tools::toTitleCase(x))+
+  theme(axis.text=element_text(size=20,
+                               margin = margin(, b = 30, l = 50)),
+        axis.title=element_text(size=25),
+        plot.title=element_text(size=35),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20),)+
+  theme(plot.background = element_rect(fill = '#759D5D'),
+        panel.grid.major=element_line(colour="#3a4e2e"),
+        panel.grid.minor=element_line(colour="#3a4e2e"),
+        plot.title = element_text(colour = "#ffffff"),
+        axis.title = element_text(colour = "#ffffff"),
+        axis.text = element_text(colour = "#ffffff"))
 
 
