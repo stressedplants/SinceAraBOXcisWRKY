@@ -301,3 +301,13 @@ write.csv(data.frame(GOTerm = sig_go_terms), file = "exported_data/Rosette_30d_s
 # This contains all GO terms analyzed, not just the significant ones
 write.csv(pafwayOut, file = "exported_data/Seedling_6d_full_pafway_matrix.csv")
 
+
+
+#########################______________________________________________________
+
+
+# Creating the network in cytoscape
+# Select top 1000 edges
+top_edges <- newNetTopEdges[1:1000,]
+
+write.table(top_edges, file="exported_data/rosette_30d_top1000_edges.csv", sep=",", row.names=FALSE, quote=FALSE)
