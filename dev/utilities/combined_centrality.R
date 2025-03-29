@@ -1,5 +1,5 @@
 # Data import and organisation --------------------------------------------
-
+library(tidyverse)
 # create an object with file path
 data_list <- c('data/centrality/centrality_seedd0.RData',
                'data/centrality/centrality_seedlingd3.RData',
@@ -158,11 +158,60 @@ acs_pres_maj <- rownames(acs_top_pres)[which(acs_rowsum>6)]
 bcs_pres_maj <- rownames(bcs_top_pres)[which(bcs_rowsum>6)]
 dcs_pres_maj <- rownames(dcs_top_pres)[which(dcs_rowsum>6)]
 
+acs_pres_all <- rownames(acs_top_pres)
+bcs_pres_all <- rownames(bcs_top_pres)
+dcs_pres_all <- rownames(dcs_top_pres)
 
-## poster recolour ---------------------------------------------------------
+# gene renaming
+library(readr)
+library(tidyverse)
+AC_names <- read_tsv('data/centrality/TAIR_search_res/All/ACs.tsv')
+BC_names <- read_tsv('data/centrality/TAIR_search_res/All/BCs.tsv')
+DC_names <- read_tsv('data/centrality/TAIR_search_res/All/DCs.tsv')
+
+AC_names <- AC_names %>% select(Locus,`Other Name(Type)`)
+BC_names <- BC_names %>% select(Locus,`Other Name(Type)`)
+DC_names <- DC_names %>% select(Locus,`Other Name(Type)`)
+
+AC_names <- AC_names %>%
+  rename(common_name = `Other Name(Type)`) %>%  # Rename the column
+  mutate(common_name = ifelse(common_name == "N/A", NA, common_name)) %>%  # Replace "N/A" with NA
+  mutate(common_name = sapply(strsplit(as.character(common_name), ";"), `[`, 1))  # Select first name before ";"
+
+BC_names <- BC_names %>%
+  rename(common_name = `Other Name(Type)`) %>%  # Rename the column
+  mutate(common_name = ifelse(common_name == "N/A", NA, common_name)) %>%  # Replace "N/A" with NA
+  mutate(common_name = sapply(strsplit(as.character(common_name), ";"), `[`, 1))  # Select first name before ";"
+
+DC_names <- DC_names %>%
+  rename(common_name = `Other Name(Type)`) %>%  # Rename the column
+  mutate(common_name = ifelse(common_name == "N/A", NA, common_name)) %>%  # Replace "N/A" with NA
+  mutate(common_name = sapply(strsplit(as.character(common_name), ";"), `[`, 1))  # Select first name before ";"
+
+# Ensure AC_names is a dataframe with correct column names
+AC_names <- AC_names %>%
+  rename(locus = Locus)  # Rename 'Locus' column for clarity
+
+# Create a named vector for mapping locus to common_name, excluding NA values
+name_map <- setNames(AC_names$common_name, AC_names$locus)
+name_map <- name_map[!is.na(name_map)]  # Remove NA values
+
+# Replace row names in acs_top_pres where a match exists
+rownames(acs_top_pres) <- ifelse(rownames(acs_top_pres) %in% names(name_map), 
+                                 name_map[rownames(acs_top_pres)], 
+                                 rownames(acs_top_pres))
+
+
+# plot a heatmap with common names
+library(pheatmap)
+
 pheatmap(acs_top_pres,main = 'Alpha Centrality',
          color = c("white", "brown"))
+
 pheatmap(bcs_top_pres,main = 'Betweenness Centrality',
+         color = c("white", "brown"))
+
+pheatmap(dcs_top_pres,main = 'Degree Centrality',
          color = c("white", "brown"))
 
 
@@ -222,6 +271,9 @@ write_lines(acs_pres_maj, 'data/centrality/output/acs_pres_maj.txt')
 write_lines(bcs_pres_maj, 'data/centrality/output/bcs_pres_maj.txt')
 write_lines(dcs_pres_maj, 'data/centrality/output/dcs_pres_maj.txt')
 
+write_lines(acs_pres_all, 'data/centrality/output/acs_pres_all.txt')
+write_lines(bcs_pres_all, 'data/centrality/output/bcs_pres_all.txt')
+write_lines(dcs_pres_all, 'data/centrality/output/dcs_pres_all.txt')
 
 # Centrality comparison ---------------------------------------------------
 
