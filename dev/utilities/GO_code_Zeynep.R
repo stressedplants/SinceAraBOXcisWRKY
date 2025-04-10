@@ -124,7 +124,7 @@ cat(paste0("Total unique significant GO terms across all datasets: ", length(all
 # Optimizing the content for visualization
 max_terms <- 100  
 if (length(all_sig_terms) > max_terms) {
-  # Calculate minimum p-value for each term across datasets
+# Calculate minimum p-value for each term across datasets
   min_pvalues <- numeric(length(all_sig_terms))
   names(min_pvalues) <- all_sig_terms
   
@@ -248,6 +248,7 @@ for (dataset in names(log_matrices)) {
   )
   plot_list[[dataset]] <- p[[4]]
 }
+dev.off()
 
 # Create the combined heatmap
 pdf("figures/all_datasets_GO_heatmap.pdf", width = 20, height = 30)
@@ -585,3 +586,289 @@ p1 <- ggplot(trajectory_data, aes(x = Dataset, y = Significance, group = Term, c
 print(p1)
 dev.off()
 
+
+# Fixing graphs:
+# Modified pheatmap call with additional parameters
+pdf("figures/all_datasets_GO_heatmap.pdf", width = 20, height = 30)
+pheatmap(
+  combined_log_matrix,
+  color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100),
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize_row = 6,  
+  fontsize_col = 8,
+  angle_col = 45,
+  annotation_row = dataset_annotation,
+  annotation_colors = annotation_colors,
+  main = "Gene Ontology Enrichment Across All Datasets",
+  legend_labels = c("Not significant", "Highly significant"),
+  legend_breaks = c(0, 10),
+  legend = TRUE,
+  na_col = "grey90",  
+  border_color = NA,  
+  cutree_rows = 5,    
+  cutree_cols = 5,
+  treeheight_row = 100,
+  treeheight_col = 100,
+  cellwidth = NA,
+  cellheight = NA,
+  scale = "none",
+  drop_levels = TRUE
+)
+dev.off()
+
+
+# Fixing the trajectory and enrichment plots:
+# Explicitly define ordered datasets
+ordered_datasets <- c(
+  "seedling_0d", 
+  "seedling_3d", 
+  "seedling_6d", 
+  "seedling_12d", 
+  "Rosette_21d", 
+  "Rosette_30d", 
+  "stem", 
+  "Flower",
+  "Silique"  
+)
+
+# Create trajectory data with explicit x-axis ordering
+trajectory_data <- data.frame()
+
+for (term in top_terms) {
+  for (dataset in ordered_datasets) {
+    # Safe handling of dataset and term existence
+    if (!dataset %in% names(log_matrices)) next
+    
+    if (!term %in% rownames(log_matrices[[dataset]]) || 
+        !term %in% colnames(log_matrices[[dataset]])) {
+      sig_value <- 0
+    } else {
+      sig_value <- max(log_matrices[[dataset]][term, ], 
+                       log_matrices[[dataset]][, term], 
+                       na.rm = TRUE)
+    }
+    
+    trajectory_data <- rbind(trajectory_data, data.frame(
+      Term = term,
+      Dataset = dataset,
+      Significance = sig_value,
+      stringsAsFactors = FALSE
+    ))
+  }
+}
+
+# Set Dataset as a factor with explicit ordering
+trajectory_data$Dataset <- factor(trajectory_data$Dataset, 
+                                  levels = ordered_datasets)
+
+p1 <- ggplot(trajectory_data, aes(x = Dataset, y = Significance, group = Term, color = Term)) +
+  geom_line(size = 0.7, alpha = 0.7) +
+  geom_point(
+    size = 3, 
+    position = position_jitter(width = 0.2, height = 0, seed = 123)
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right"
+  ) +
+  labs(
+    title = "GO Term Significance Across Developmental Stages (with Jitter)",
+    x = "Developmental Stage",
+    y = "-log10(p-value)",
+    color = "GO Term"
+  ) +
+  scale_y_continuous(limits = c(0, 10)) +
+  scale_x_discrete(drop = FALSE)  # Ensures all x-axis levels are shown
+
+
+
+# final
+
+# Create a trajectory plot with jitter and larger text
+pdf("figures/GO_trajectory_with_jitter.pdf", width = 16, height = 12)
+
+p1 <- ggplot(trajectory_data, aes(x = Dataset, y = Significance, group = Term, color = Term)) +
+  # Keep lines without jitter to show the trend
+  geom_line(size = 0.7, alpha = 0.7) +
+  # Add jittered points
+  geom_point(
+    size = 3, 
+    position = position_jitter(width = 0.2, height = 0, seed = 123)
+  ) +
+  theme_bw() +
+  theme(
+    # Increase text sizes
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),  # Larger x-axis labels
+    axis.text.y = element_text(size = 12),  # Larger y-axis labels
+    axis.title.x = element_text(size = 14, face = "bold"),  # Larger x-axis title
+    axis.title.y = element_text(size = 14, face = "bold"),  # Larger y-axis title
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),  # Larger plot title
+    legend.title = element_text(size = 12, face = "bold"),  # Larger legend title
+    legend.text = element_text(size = 10),  # Larger legend text
+    legend.position = "right"
+  ) +
+  labs(
+    title = "GO Term Significance Across Developmental Stages",
+    x = "Developmental Stage",
+    y = "-log10(p-value)",
+    color = "GO Term"
+  ) +
+  scale_y_continuous(limits = c(0, 10)) +
+  scale_x_discrete(drop = FALSE)
+
+print(p1)
+dev.off()
+
+
+# Verify these datasets exist in log_matrices
+available_datasets <- names(log_matrices)
+print("Available datasets in log_matrices:")
+print(available_datasets)
+
+# Find any missing datasets
+missing_datasets <- setdiff(ordered_datasets, available_datasets)
+if(length(missing_datasets) > 0) {
+  print("Warning: Some expected datasets are missing:")
+  print(missing_datasets)
+}
+
+# Use only available datasets
+ordered_datasets <- intersect(ordered_datasets, available_datasets)
+
+# Create the trajectory data with explicit x-axis ordering
+for (term in top_terms) {
+  for (dataset in ordered_datasets) {
+    
+    # Skip if dataset doesn't exist in log_matrices
+    if (!dataset %in% names(log_matrices)) {
+      next
+    }
+    
+    # Check if term exists in this dataset's matrix
+    if (!term %in% rownames(log_matrices[[dataset]]) || 
+        !term %in% colnames(log_matrices[[dataset]])) {
+      
+      # If term doesn't exist, use 0 (not significant)
+      sig_value <- 0
+    } else {
+      
+      # Get maximum significance for this term (either as upstream or downstream)
+      sig_value <- max(log_matrices[[dataset]][term, ], 
+                       log_matrices[[dataset]][, term], 
+                       na.rm = TRUE)
+      
+      # Handle Inf values
+      if (is.infinite(sig_value)) sig_value <- 0
+    }
+    
+    # Add to trajectory data
+    trajectory_data <- rbind(trajectory_data, data.frame(
+      Term = term,
+      Dataset = dataset,
+      Significance = sig_value,
+      stringsAsFactors = FALSE
+    ))
+  }
+}
+
+# Set the Dataset column as a factor with explicit ordering
+trajectory_data$Dataset <- factor(trajectory_data$Dataset, 
+                                  levels = ordered_datasets)
+
+# Check the structure of our new data frame
+print("Structure of new trajectory_data:")
+str(trajectory_data)
+print("Summary of Dataset factor levels:")
+summary(trajectory_data$Dataset)
+
+# Create the fixed trajectory plot with guaranteed x-axis labels
+pdf("figures/fixed_GO_trajectory.pdf", width = 14, height = 10)
+
+# Create the plot with explicit axis settings
+p <- ggplot(trajectory_data, aes(x = Dataset, y = Significance, group = Term, color = Term)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right"
+  ) +
+  labs(
+    title = "GO Term Significance Across Developmental Stages",
+    x = "Developmental Stage",
+    y = "-log10(p-value)",
+    color = "GO Term"
+  ) +
+  scale_y_continuous(limits = c(0, 10)) +
+  scale_x_discrete(drop = FALSE)
+
+print(p)
+dev.off()
+
+#-----------------------------------------------------------------------------------------------
+
+# Adding x-axis jitter to the GO term trajectory plot
+
+# Using the trajectory_data we created in the previous fix
+# If you need to recreate it, include the data creation code here
+
+# Create a trajectory plot with jitter
+pdf("figures/GO_trajectory_with_jitter.pdf", width = 14, height = 10)
+
+# Option 1: Using position_jitter for the points only
+p1 <- ggplot(trajectory_data, aes(x = Dataset, y = Significance, group = Term, color = Term)) +
+  # Keep lines without jitter to show the trend
+  geom_line(size = 0.7, alpha = 0.7) +
+  # Add jittered points
+  geom_point(
+    size = 3, 
+    position = position_jitter(width = 0.2, height = 0, seed = 123)
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right"
+  ) +
+  labs(
+    title = "GO Term Significance Across Developmental Stages (with Jitter)",
+    x = "Developmental Stage",
+    y = "-log10(p-value)",
+    color = "GO Term"
+  ) +
+  scale_y_continuous(limits = c(0, 10)) +
+  scale_x_discrete(drop = FALSE)
+
+print(p1)
+dev.off()
+
+
+# Modified pheatmap of all_datasets call with additional parameters
+pdf("figures/all_datasets_GO_heatmap.pdf", width = 20, height = 30)
+pheatmap(
+  combined_log_matrix,
+  color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100),
+  cluster_rows = TRUE,
+  cluster_cols = TRUE,
+  fontsize_row = 6,  
+  fontsize_col = 8,
+  angle_col = 45,
+  annotation_row = dataset_annotation,
+  annotation_colors = annotation_colors,
+  main = "Gene Ontology Enrichment Across All Datasets",
+  legend_labels = c("Not significant", "Highly significant"),
+  legend_breaks = c(0, 10),
+  legend = TRUE,
+  na_col = "grey90",  
+  border_color = NA,  
+  cutree_rows = 5,    
+  cutree_cols = 5,
+  treeheight_row = 100,
+  treeheight_col = 100,
+  cellwidth = NA,
+  cellheight = NA,
+  scale = "none",
+  drop_levels = TRUE
+)
+dev.off()
