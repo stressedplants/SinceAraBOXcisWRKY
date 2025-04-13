@@ -224,3 +224,344 @@ Simpson=cbind(Simpson, tVal[idSimpson])
 
 #save file
 write.table(Simpson, file='data/seedling-d12_SimpsonPairs.txt', sep='\t', row.names=F)
+
+
+
+
+
+# Week 3 ------------------------------------------------------------------
+
+### If reload required ------------------------------------------------------
+# # Loading helper functions
+# source('dev/utilities/dataprocessingHelperFunctions.R')
+# 
+# # Loading the data
+# a=load('data/GSE226097_seedling_12d_230221.RData')
+# 
+# # Loading the original AraBOXcis network trained on bulk RNA-seq in seedlings
+# araboxcis <- read.csv(file = 'data/gboxNetwork22C.csv',header = TRUE)
+# 
+# # filter unique values from transcription factor column of araboxcis
+# tfs = unique(araboxcis[,1])
+# 
+# # filter tf, for transcription factors in scRNA data dataset
+# tfSubs=tfs[which(tfs %in% rownames(gbox))]
+
+
+
+## Creating the network ----------------------------------------------------
+
+library(GENIE3) #load the GENIE3 to create the network with
+
+library(tictoc) #load the tictoc library to measure the runtime 
+library(beepr) #load the beepr library to beep when code has been run
+
+tic('nTree = 11, nCore = 4') #starting the timer
+
+net = GENIE3(as.matrix(gbox),regulators = tfSubs, nTrees = 11, nCores = 4) #creating the network (network sizes=5)
+save(net, file='data/seedling-d12_network_nTree_11_nCore_4.RData') #save the network
+
+### remember to change saved file name!!!!!!!!!!
+toc() #timer end
+beep(3) #play sound at the end of the code
+
+# convert the network output into an adjecency matrix
+ginieOutput=convertToAdjacency(net, 0.05)
+dim(ginieOutput)
+ginieOutput[1:10,]
+
+# loading the network
+load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+newNet = GENIE3::getLinkList(net)
+araboxcis = read.csv('data/gboxNetwork22C.csv', header = T)
+
+
+## Overlaps b/w networks ---------------------------------------------------
+
+# create a set of unique genes in the new network
+genesInNet = unique(c(newNet[,1],newNet[,2]))
+
+# filter the araboxcis dataset to only include genes from the new network
+araboxcisFiltered = araboxcis[which(araboxcis[,1] %in% genesInNet & araboxcis[,2] %in% genesInNet),]
+
+# extract the top edges of the network,to make it the same size as araboxcisFiltered network
+newNetTopEdges=newNet[1:length(araboxcisFiltered[,1]),]
+
+# reformat edges for easier comparision
+edgesNew=paste(newNetTopEdges[,1], newNetTopEdges[,2], sep='_')
+edgesOld=paste(araboxcisFiltered[,1], araboxcisFiltered[,2], sep='_')
+
+# create a Venn diagram of overlap
+library(ggplot2)
+library(ggvenn)
+
+d = data_frame(edgesOld,edgesNew)
+
+all = unique(c(d$edgesNew,d$edgesOld))
+
+ven = tibble(edge = all,
+             old_network = all %in%  d$edgesOld,
+             new_network = all %in%  d$edgesNew)
+
+ggplot(ven, aes(A = old_network, B = new_network)) + 
+  geom_venn(fill_color = c('green','cyan')) +
+  coord_fixed() + theme_void()
+
+
+## important genes in network ----------------------------------------------
+
+tfsNew = table(newNetTopEdges[,1]) # list the tfs from the new network and their frequency of occurrence
+
+tfsOld = table(araboxcisFiltered[,1])[names(tfsNew)] # list the tfs from the new network and their frequency of occurrence and sort it according to tfsNew
+
+hist(as.numeric(tfsNew), main='SinceAraBOXcis', xlab='degree of TFs') # view a friquency distribution of degree of TFs
+
+# compare the degree of TFs in new and old network
+plot(as.numeric(tfsNew), as.numeric(tfsOld),
+     xlab='degree in SinceAraBOXcis', ylab='degree in AraBOXcis')
+
+# print the top 20 TFs in new network with the highest degrees 
+sort(tfsNew, decreasing=TRUE)[1:20]
+
+# calculate different metricies of TF importance
+library(igraph)
+library(network)
+
+library(pheatmap)
+## Betweenness Centrality
+simple_network <- graph_from_edgelist(as.matrix(newNetTopEdges[,c(1,2)]))
+
+node_betweenness_all <- betweenness(simple_network)
+node_betweenness <- node_betweenness_all[which(node_betweenness_all>0)]
+sort(node_betweenness, decreasing = T)[1:20]
+
+plot(sort(node_betweenness), main = 'Betweenness Centrality')
+
+## Alpha Centrality
+#abline(h=5000)
+
+node_centrality_all <- alpha_centrality(simple_network, alpha=0.9)
+node_centrality=node_centrality_all[which(node_centrality_all>0)]
+sort(node_centrality, decreasing=TRUE)[1:20]
+
+plot(sort(node_centrality), main = 'Alpha Centrality')
+
+## Degree Centrality
+node_hub_all <- hub_score(simple_network)$vector
+node_hub=node_hub_all[which(node_hub_all>0)]
+sort(node_hub, decreasing=TRUE)[1:20]
+
+plot(sort(node_hub), main = 'Degree Centrality')
+
+# plot betweenness against alpha
+
+plot(node_betweenness_all, node_centrality_all, 
+     xlab = 'Betweenness Centrality', ylab = 'Alpha Centrality', 
+     main = 'Betweenness vs Alpha')
+
+plot(log10(node_betweenness_all), log10(node_centrality_all), 
+     xlab = 'Log Betweenness Centrality', ylab = 'Log Alpha Centrality', 
+     main = 'Betweenness vs Alpha')
+
+# plot degree against alpha
+
+plot(node_hub_all, node_centrality_all, 
+     xlab = 'Degree Centrality', ylab = 'Alpha Centrality', 
+     main = 'Degree vs Alpha')
+
+plot(log10(node_hub_all), log10(node_centrality_all), 
+     xlab = 'Log Degree Centrality', ylab = 'Log Alpha Centrality', 
+     main = 'Degree vs Alpha')
+
+# plot degree against betweenness
+
+plot(node_hub_all, node_betweenness_all, 
+     xlab = 'Degree Centrality', ylab = 'Betweenness Centrality', 
+     main = 'Degree vs Betweenness')
+
+plot(log10(node_hub_all), log10(node_betweenness_all), 
+     xlab = 'Log Degree Centrality', ylab = 'Log Betweenness Centrality', 
+     main = 'Degree vs Betweenness')
+
+
+# Top genes
+top_betweenness <- sort(node_betweenness,decreasing = T)[1:10]
+
+top_degree <- sort(node_hub,decreasing = T)[1:10]
+
+top_betweenness <- as.data.frame(top_betweenness)
+
+top_degree <- as.data.frame(top_degree)
+
+top_alpha <- sort(node_centrality,decreasing = T)[1:10]
+
+top_alpha <- as.data.frame(top_alpha)
+
+# save Rdata
+
+save(node_betweenness,node_centrality,node_hub, 
+     file = 'data/centrality_seedlingd12.RData')
+
+save(node_betweenness_all,node_centrality_all,node_hub_all, 
+     file = 'data/centrality_all_seedlingd12.RData')
+
+## GO analysis of the network  ---------------------------------------------
+
+a = load('data/functionalData.RData')
+source('dev/utilities/dataprocessingHelperFunctions.R')
+
+pafwayOut=pafway(GOconcat, newNetTopEdges, unique(goOfInterest))
+rownames(pafwayOut)=colnames(pafwayOut)
+
+#Filter to only include rows and columns with at least one significant factor:
+atLeastOneSigRow=which(apply(pafwayOut, 1, function(i){length(which(i<0.05))})>0)
+
+atLeastOneSigCol=which(apply(pafwayOut, 2, function(i){length(which(i<0.05))})>0)
+
+pafwayInterestingOnly=pafwayOut[atLeastOneSigRow, atLeastOneSigCol]
+
+#Here, the terms associated with the columns are upstream of the terms associated with the rows.
+#The values correspond to p-values, so smaller is more significant.
+pheatmap(pafwayInterestingOnly, main = 'Heatmap of Significancy, Gene Ontology',
+         color=colorRampPalette(c("hotpink","lightyellow", "cyan"))(50))
+
+#Let's re-do zooming to the most significant associations by taking a log
+pheatmap(log(pafwayInterestingOnly, 10),main = 'Heatmap of Log Significance, Gene Ontology')
+
+
+# Week 5 ------------------------------------------------------------------
+
+## unnecessary -------------------------------------------------------------
+
+# # load the helper functions
+# source('dev/utilities/dataprocessingHelperFunctions.R')
+# 
+# #load the generated netweork
+# load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+# 
+# # conver the Giene3 output matrix to an adjacency matrix and sort by the score
+# cyto_inpt=convertToAdjacency(net, 0) 
+# 
+# cyto_inpt=cyto_inpt%>% sort_by(y = cyto_inpt$X3) %>% slice_head(n=1000)
+# 
+# write_csv(cyto_inpt,'data/network//network_adj.csv')
+
+
+## Homework ----------------------------------------------------------------
+library(GENIE3)
+library(tidyverse)
+
+# load the data
+araboxcis <- read.csv(file = 'data/gboxNetwork22C.csv',header = TRUE)
+
+load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+sdd12 = GENIE3::getLinkList(net)
+colnames(sdd12) <- c("from", "to", "score")
+
+load('data/seedling6d_network_nTree_10.RData')
+sdd6 = newNetTopEdges
+colnames(sdd6) <- c("from", "to", "score")
+
+remove(net)
+remove(newNetTopEdges)
+# join the data sets to find the common edges
+
+sdd12_ara_common_edges <- inner_join(araboxcis, sdd12, by = c("from", "to"))
+sdd6_sdd12_common_edges = inner_join(sdd6,sdd12,by = c("from","to"))
+all_common_edges = inner_join(sdd6_sdd12_common_edges,araboxcis, by = c("from","to"))
+
+# Filter out genes that only appear in one edge
+sdd12_ara_common_edges <- sdd12_ara_common_edges %>% group_by(to) %>%
+  mutate(edge_count = n()) %>% ungroup()
+
+sdd12_ara_common_edges <- sdd12_ara_common_edges %>% filter(edge_count > 1)
+
+
+sdd6_sdd12_common_edges <- sdd6_sdd12_common_edges %>% group_by(to) %>%
+  mutate(edge_count = n()) %>% ungroup()
+
+sdd6_sdd12_common_edges <- sdd6_sdd12_common_edges %>% filter(edge_count > 1)
+
+
+all_common_edges <- all_common_edges %>% group_by(to) %>%
+  mutate(edge_count = n()) %>% ungroup()
+
+all_common_edges <- all_common_edges %>% filter(edge_count > 1)
+
+# calculate average score and retreve top 1000 genes
+sdd12_ara_common_edges = sdd12_ara_common_edges %>% mutate(avg_score = (score.x+score.y)/2)
+sdd12_ara_common_edges = sdd12_ara_common_edges %>% 
+  sort_by(sdd12_ara_common_edges$avg_score,decreasing=T) %>% slice_head(n=1000) %>% 
+  select(-score.x, -score.y, -edge_count)
+
+
+sdd6_sdd12_common_edges = sdd6_sdd12_common_edges %>% mutate(avg_score = (score.x+score.y)/2)
+sdd6_sdd12_common_edges = sdd6_sdd12_common_edges %>% 
+  sort_by(sdd6_sdd12_common_edges$avg_score,decreasing=T) %>% slice_head(n=1000) %>% 
+  select(-score.x, -score.y, -edge_count)
+
+
+all_common_edges = all_common_edges %>% mutate(avg_score = (score.x+score.y+score)/3)
+all_common_edges = all_common_edges %>%  sort_by(all_common_edges$avg_score, decreasing = T) %>% slice_head(n=1000) %>% 
+  select(-score.x, -score.y, -edge_count, -score)
+
+
+
+### write the files
+colnames(sdd12_ara_common_edges) <- c("regulatoryGene", "targetGene", "weight")
+write.csv(sdd12_ara_common_edges, 'data/network/sdd12_ara.csv', row.names = FALSE)
+
+colnames(sdd6_sdd12_common_edges) <- c("regulatoryGene", "targetGene", "weight")
+write.csv2(sdd6_sdd12_common_edges,'data/network/sdd6_sdd12.csv', row.names = FALSE)
+
+colnames(all_common_edges) <- c("regulatoryGene", "targetGene", "weight")
+write.csv2(all_common_edges,'data/network/sdd6_sdd12_ara.csv', row.names = FALSE)
+
+
+# Creating a GO term node map ---------------------------------------------
+library(dplyr)
+
+load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+net = GENIE3::getLinkList(net)
+
+gene_list <- unique(c(net$regulatoryGene, net$targetGene))
+
+load('data/functionalData.RData')
+
+GO_df <- data.frame(
+  Gene = names(GOconcat), 
+  Keywords = unlist(GOconcat), 
+  stringsAsFactors = FALSE)
+
+GO_df = GO_df %>% filter(Gene %in% gene_list)
+
+library(stringr)
+
+GO_df$gooi <- sapply(GO_df$Keywords, function(keywords) {
+  found <- goOfInterest[str_detect(keywords, goOfInterest)]
+  if (length(found) > 0) {
+    paste(found, collapse = ";")
+  } else {
+    NA_character_
+  }
+})
+
+rownames(GO_df) <- NULL
+
+GO_df = GO_df %>% select(-Keywords)
+
+write.csv(GO_df,'data/network/gooi.csv',row.names = F)
+
+## test
+df = read.csv2('data/network/sdd6_sdd12_ara.csv')
+
+# Merge GO_df based on regulatoryGene in df and Gene in GO_df
+df <- merge(df, GO_df, by.x = "regulatoryGene", by.y = "Gene", all.x = TRUE)
+
+# Rename the merged column to "GO"
+df$GO <- df$gooi
+
+# Remove the original "gooi" column if needed
+df$gooi <- NULL
+
+write.csv2(df,'data/network/sdd6_sdd12_ara_go.csv', row.names = FALSE)

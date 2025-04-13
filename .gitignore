@@ -4,3 +4,7 @@
 .Ruserdata
 *.RData
 /data
+/exported_data
+*.zip
+/data
+/exported_data
