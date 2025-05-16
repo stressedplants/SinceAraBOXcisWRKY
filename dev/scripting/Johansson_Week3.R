@@ -123,8 +123,8 @@ plot(as.numeric(tfsNew),
      xlab = 'Degree in SinceAraBOXcis',
      ylab = 'Degree in AraBOXcis')
 
-# The 20 TFs with the highest degrees
-sort(tfsNew, decreasing = TRUE) [1:20]
+# The 35 TFs with the highest degrees
+sort(tfsNew, decreasing = TRUE) [1:35]
 
 
 # Arabidopsis genes can be searched in arabidopsis.org - use the eFP browser tool. 
@@ -226,5 +226,11 @@ pheatmap(pafwayInterestingOnly)
 # Taking a log to zoom into most significant associations
 pheatmap(log(pafwayInterestingOnly,
              10))
+
+save(node_betweenness,node_centrality,node_hub, file="~/Documents/Bioinformatics/Araboxcis/data/centrality_flower.RData")
+
+save(node_betweenness_all,node_centrality_all,node_hub_all, file='~/Documents/Bioinformatics/Araboxcis/data/centrality_all_flower.RData')
+
+
 
 

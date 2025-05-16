@@ -516,3 +516,52 @@ write.csv2(sdd6_sdd12_common_edges,'data/network/sdd6_sdd12.csv', row.names = FA
 
 colnames(all_common_edges) <- c("regulatoryGene", "targetGene", "weight")
 write.csv2(all_common_edges,'data/network/sdd6_sdd12_ara.csv', row.names = FALSE)
+
+
+# Creating a GO term node map ---------------------------------------------
+library(dplyr)
+
+load('data/seedling-d12_network_nTree_11_nCore_4.RData')
+net = GENIE3::getLinkList(net)
+
+gene_list <- unique(c(net$regulatoryGene, net$targetGene))
+
+load('data/functionalData.RData')
+
+GO_df <- data.frame(
+  Gene = names(GOconcat), 
+  Keywords = unlist(GOconcat), 
+  stringsAsFactors = FALSE)
+
+GO_df = GO_df %>% filter(Gene %in% gene_list)
+
+library(stringr)
+
+GO_df$gooi <- sapply(GO_df$Keywords, function(keywords) {
+  found <- goOfInterest[str_detect(keywords, goOfInterest)]
+  if (length(found) > 0) {
+    paste(found, collapse = ";")
+  } else {
+    NA_character_
+  }
+})
+
+rownames(GO_df) <- NULL
+
+GO_df = GO_df %>% select(-Keywords)
+
+write.csv(GO_df,'data/network/gooi.csv',row.names = F)
+
+## test
+df = read.csv2('data/network/sdd6_sdd12_ara.csv')
+
+# Merge GO_df based on regulatoryGene in df and Gene in GO_df
+df <- merge(df, GO_df, by.x = "regulatoryGene", by.y = "Gene", all.x = TRUE)
+
+# Rename the merged column to "GO"
+df$GO <- df$gooi
+
+# Remove the original "gooi" column if needed
+df$gooi <- NULL
+
+write.csv2(df,'data/network/sdd6_sdd12_ara_go.csv', row.names = FALSE)
